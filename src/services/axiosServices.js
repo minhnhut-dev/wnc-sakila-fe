@@ -4,7 +4,7 @@ import axios from 'axios';
 import useLocalStorage from '../hooks/useLocalStorage';
 // Create an instance of Axios with custom configuration
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:3000', // Replace with your API base URL
+  baseURL: 'http://localhost:5000', // Replace with your API base URL
   headers: {
     'Content-Type': 'application/json',
     "Access-Control-Allow-Origin": "*",
