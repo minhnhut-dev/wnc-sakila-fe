@@ -1,30 +1,46 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import { MDBBtn, MDBTable, MDBTableHead, MDBTableBody } from 'mdb-react-ui-kit';
 import { axiosService, setAuthToken } from '../../services/axiosServices';
 import moment from 'moment/moment';
+import useLocalStorage from '../../hooks/useLocalStorage';
+import AppContext from '../../context/userContext';
+import { toastError } from "../../services/toastService";
 
 function Actor() {
-  let user = localStorage.getItem('sakila-user') || {};
-  const accessToken = JSON.parse(user).accessToken || "";
-  const [actor, setActor] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { value } = useLocalStorage("sakila-user") || "{}";
+  const { user: userInfo } = useContext(AppContext);
+  const user = JSON.parse(value);
+  const accessToken = user?.access_token;
 
- const getActor = async () => {
-    setAuthToken(accessToken);
-    const { data } = await axiosService.get('/actor');
-    return data;
+  const [actor, setActor] = useState([]);
+  const [ts, setTS] = useState(0);
+
+  const getActor = async () => {
+    try {
+      setAuthToken(accessToken);
+      const response = await axiosService.get(`/actor?ts=${ts !== undefined? ts : 0}`);
+      return response.data;
+    } catch (error) {
+      toastError(error?.message);
+      throw new Error(error);
+    }
   }
 
   useEffect(() => {
-    setIsLoading(true);
-    getActor().then((res) => {
-      const {data} = res;
-      setActor(data);
-      setIsLoading(false);
-    })
-  }, []);
-
+    let interval;
+    if(ts !== undefined) {
+      interval = setInterval(() => {
+        getActor().then((data) => {
+          setActor(data.data);
+          setTS(data.ts);
+        });
+      }, 2000);
+    }
+    return () => clearInterval(interval);
+  }, [ts]);
+  
   return (
     <>
       <div className="actor">
@@ -41,23 +57,23 @@ function Actor() {
                   </tr>
                 </MDBTableHead>
                 <MDBTableBody>
-                  {actor.map((a, index) => (
+                  {actor && actor.map((a, index) => (
                     <tr key={index}>
-                    <td>
-                      <div className='d-flex align-items-center'>
-                        <div className='ms-3'>
-                          <p className='fw-bold mb-1'>{a?.actorId}</p>
+                      <td>
+                        <div className='d-flex align-items-center'>
+                          <div className='ms-3'>
+                            <p className='fw-bold mb-1'>{a?.actorId}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <p className='fw-normal mb-1'>{a?.firstName}</p>
-                    </td>
-                    <td>
-                       <p className='fw-normal mb-1'>{a?.lastName}</p>
-                    </td>
-                    <td>{  moment(a?.lastUpdate).format("dd-MM-yyyy")}</td>
-                  </tr>
+                      </td>
+                      <td>
+                        <p className='fw-normal mb-1'>{a?.firstName}</p>
+                      </td>
+                      <td>
+                        <p className='fw-normal mb-1'>{a?.lastName}</p>
+                      </td>
+                      <td>{moment(a?.lastUpdate).format("dd-MM-yyyy")}</td>
+                    </tr>
                   ))}
                 </MDBTableBody>
               </MDBTable>

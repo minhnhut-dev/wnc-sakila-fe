@@ -13,7 +13,6 @@ function Film() {
   const user = JSON.parse(value);
   const accessToken =  user?.access_token;
   const [film, setFilm] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   const [error, setError] = useState(null);
   const getFilm = async () => {
@@ -27,10 +26,8 @@ function Film() {
   }
 
   useEffect(() => {
-    setIsLoading(true);
     getFilm().then((data) => {
       setFilm(data);
-      setIsLoading(false);
     }).catch((error) => {
       setError(error.message);
     });

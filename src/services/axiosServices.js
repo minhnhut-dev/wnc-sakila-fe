@@ -4,7 +4,7 @@ import axios from 'axios';
 import useLocalStorage from '../hooks/useLocalStorage';
 // Create an instance of Axios with custom configuration
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5000', // Replace with your API base URL
+  baseURL: 'http://localhost:3000', // Replace with your API base URL
   headers: {
     'Content-Type': 'application/json',
     "Access-Control-Allow-Origin": "*",
@@ -16,9 +16,10 @@ const axiosInstance = axios.create({
 //   return status < 500;
 // }
 
+
 axiosInstance.interceptors.request.use((config) => {
   const user = localStorage.getItem('sakila-user') || "{}";
-  const access_token = JSON.parse(user)?.access_token;
+  const access_token = JSON.parse(user)?.accessToken;
   if(access_token) {
     config.headers.Authorization = `Bearer ${access_token}`;
   }
@@ -27,15 +28,6 @@ axiosInstance.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-// Function to set the authorization token
-const setAuthToken = (token) => {
-  if (token) {
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  } else {
-    delete axiosInstance.defaults.headers.common['Authorization'];
-  }
-};
-
 axiosInstance.interceptors.response.use((response) => {
   return response;
 }, async (error) => {
@@ -43,8 +35,6 @@ axiosInstance.interceptors.response.use((response) => {
   console.log(error)
   console.log('Access token expired');
   const user = localStorage.getItem('sakila-user') || "{}";
-  // const refresh_token_1= JSON.parse(user)?.refresh_token;
-
   if(error.response && error.response.status === 419){
     try {
       console.log('Call refresh token api');
@@ -65,6 +55,16 @@ axiosInstance.interceptors.response.use((response) => {
   }
   return Promise.reject(error);
 });
+
+// Function to set the authorization token
+const setAuthToken = (token) => {
+  if (token) {
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete axiosInstance.defaults.headers.common['Authorization'];
+  }
+};
+
 
 
 const axiosService = {

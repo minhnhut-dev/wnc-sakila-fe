@@ -15,7 +15,10 @@ import "react-toastify/dist/ReactToastify.css";
 
    export const toastSuccess = (mess) => {
     if (mess) {
-      toast.success(`${mess}!`);
+      // toast.success(`${mess}!`);
+      // toast.success(`${mess}!`, { toastId: 'successToast' });
+      toast.success(`${mess}!`, { toastId: 3, type: toast.TYPE.SUCCESS });
+
     }
   };
 
